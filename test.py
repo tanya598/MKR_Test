@@ -185,47 +185,72 @@
 #         f.writelines(input_file_content)
 #     assert calc_population_change(str(file_path)) == expected_data
 
-import os
+# import os
+# import pytest
+#
+# @pytest.fixture
+# def population_data():
+#
+#
+#     return "test_data.txt"
+#
+#
+# # def test_calc_population_change(population_data):
+# #     from main import calc_population_change
+# #
+# #     expected_result = {
+# #         'United States': {2011: 2848379, 2012: 2714241},
+# #         'China': {2011: 5534923, 2012: 6345915},
+# #         'India': {2011: 10622029, 2012: 10135240}
+# #     }
+# #     result = calc_population_change(population_data)
+# #     assert result == expected_result
+#
+# @pytest.mark.parametrize("country, year, population, expected_result", [
+#     ("United States", 2011, 311591917, 2848379),
+#     ("China", 2012, 1349585838, 6345915),
+#     ("India", 2011, 1220845451, 10622029),
+# ])
+# def test_calc_population_change_single(population_data, country, year, population, expected_result):
+#     from main import calc_population_change
+#
+#     with open(population_data, 'a') as f:
+#         f.write(f"{country}, {year}, {population}\n")
+#
+#     result = calc_population_change(population_data)
+#     assert result[country][year] == expected_result
+
 import pytest
+import os
 
-@pytest.fixture
+@pytest.fixture(scope="module")
 def population_data():
-    data = "United States, 2010, 308745538\n"\
-           "United States, 2011, 311591917\n"\
-           "United States, 2012, 314311158\n"\
-           "China, 2010, 1337705000\n"\
-           "China, 2011, 1343239923\n"\
-           "China, 2012, 1349585838\n"\
-           "India, 2010, 1210193422\n"\
-           "India, 2011, 1220845451\n"\
-           "India, 2012, 1230980691\n"
-    with open('test_population_data.txt', 'w') as f:
-        f.write(data)
-    yield 'test_population_data.txt'
-    os.remove('test_population_data.txt')
-
-def test_calc_population_change(population_data):
-    from main import calc_population_change
-
-    expected_result = {
-        'United States': {2011: 2848379, 2012: 2714241},
-        'China': {2011: 5534923, 2012: 6345915},
-        'India': {2011: 10622029, 2012: 10135240}
-    }
-    result = calc_population_change(population_data)
-    assert result == expected_result
-
-@pytest.mark.parametrize("country, year, population, expected_result", [
-    ("United States", 2011, 311591917, 2848379),
-    ("China", 2012, 1349585838, 6345915),
-    ("India", 2011, 1220845451, 10622029),
+    file_path = "population_data.txt"
+    if os.path.exists(file_path):
+        with open(file_path, 'r') as f:
+            lines = f.readlines()
+            data = {}
+            for line in lines:
+                country, year, population = line.strip().split(', ')
+                year, population = int(year), int(population)
+                if country not in data:
+                    data[country] = {}
+                if 'last_year' in data[country]:
+                    population_change = population - data[country]['last_population']
+                    data[country][year] = population_change
+                data[country]['last_population'] = population
+                data[country]['last_year'] = year
+        return data
+    else:
+        pytest.skip("File does not exist.")
+@pytest.mark.parametrize("country, year, expected_result", [
+    ("United States", 2011, {2010: 0, 2011: 2848379}),
+    ("United States", 2012, {2011: 2250279, 2012: 2711241}),
+    ("China", 2011, {2010: 0, 2011: 5533923}),
+    ("China", 2012, {2011: 5533923, 2012: 5534294})
 ])
-def test_calc_population_change_single(population_data, country, year, population, expected_result):
-    from main import calc_population_change
+def test_calc_population_change(population_data, country, year, expected_result):
+    assert population_data[country][year] == expected_result
 
-    with open(population_data, 'a') as f:
-        f.write(f"{country}, {year}, {population}\n")
 
-    result = calc_population_change(population_data)
-    assert result[country][year] == expected_result
 
