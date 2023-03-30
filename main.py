@@ -17,3 +17,11 @@ def calc_population_change(filename):
             data[country]['last_population'] = population
             data[country]['last_year'] = year
         return data
+
+
+file_path = "population_data.txt"
+if os.path.exists(file_path):
+    population_change_data = calc_population_change(file_path)
+    print(population_change_data)
+else:
+    print("File does not exist.")
