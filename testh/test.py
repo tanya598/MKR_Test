@@ -225,7 +225,7 @@ import os
 
 @pytest.fixture(scope="module")
 def population_data():
-    file_path = "population_data.txt"
+    file_path = "../population_data.txt"
     if os.path.exists(file_path):
         with open(file_path, 'r') as f:
             lines = f.readlines()
